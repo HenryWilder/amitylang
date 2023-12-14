@@ -1,4 +1,5 @@
 'use strict';
+
 /**
  * @param {string} codeStr
  * @returns {string}
@@ -16,6 +17,7 @@ const sanitize = (codeStr) => {
     }
     return sanitized;
 };
+
 /**
  * @typedef {{ start: number, size: number }} Range
  * @typedef {{ text: string, range: Range }} Token
@@ -23,6 +25,7 @@ const sanitize = (codeStr) => {
  * @typedef { Token & { scope: Scope } } Symbol
  * @typedef {{ type: 'program', body: Symbol[] }} AST Abstract syntax tree
  */
+
 /**
  * @param {string} code
  * @returns {Token[]}
@@ -39,9 +42,11 @@ const tokenize = (code) => {
         };
         tokens.push({ text, range });
     }
+
     // console.debug(tokens);
     return tokens;
 };
+
 /**
  * @param {Token[]} tokens
  * @returns {AST}
@@ -56,6 +61,7 @@ const parse = (tokens) => {
     for (let i = 0; i < tokens.length; ++i) {
         let token = tokens[i];
         const { range, text } = token;
+
         // Block comments
         if (text.startsWith('//') || (text.startsWith('/*') && text.endsWith('*/'))) {
             ast.body.push({ type: 'comment', range });
@@ -71,24 +77,27 @@ const parse = (tokens) => {
                 };
                 scopeStack.push({ type: scopeTypes[text], context: mostRecentKeyword });
             }
+
             let type;
             const bracketTypes = {
                 '()': 'paren',
                 '[]': 'bracket',
                 '{}': 'brace',
             };
+
             for (const key in bracketTypes) {
                 if (key.includes(text)) {
                     type = bracketTypes[key];
                     break;
                 }
             }
+
             ast.body.push({ type, depth, text, range });
+
             if (']})'.includes(text)) {
                 if (depth === 0) {
                     ast.body[ast.body.length - 1].type = 'illegal';
-                }
-                else {
+                } else {
                     --depth;
                     scopeStack.pop();
                 }
@@ -125,9 +134,11 @@ const parse = (tokens) => {
             ast.body.push({ type: 'unknown', text, range });
         }
     }
+
     // console.debug(ast);
     return ast;
 };
+
 /**
  * @param {AST} ast
  * @returns {AST}
@@ -139,13 +150,16 @@ const analyze = (ast) => {
      */
     const semantics = [];
     let id = 0;
+
     for (const item of ast.body) {
         if (item.type === 'semantic') {
             const isNewSemantic = item.scope === 'statement or object';
+
             // Being defined/declared
             if (isNewSemantic) {
                 semantics.push({ type: 'object', id });
             }
+
             // Already defined
             if (item.text in semantics) {
                 item.type = semantics[item.text].type;
@@ -156,8 +170,10 @@ const analyze = (ast) => {
             }
         }
     }
+
     return ast;
 };
+
 /**
  * @param {string} original
  * @param {AST} ast
@@ -181,6 +197,7 @@ const highlight = (original, ast) => {
         operator: 'op',
         punctuation: 'p',
     };
+
     let highlighted = '';
     for (const item of ast.body) {
         const className = classNameMap[item.type] ?? '';
@@ -191,6 +208,7 @@ const highlight = (original, ast) => {
     }
     return highlighted;
 };
+
 /**
  * @param {string} code
  * @returns {string}

@@ -5,11 +5,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Example 1</title>
         <link rel="stylesheet" href="syntax-highlighting.css" />
-        <script type="module" src="highlight.js" defer></script>
+        <script type="module" src="highlight.js"></script>
     </head>
     <body>
         <code>
             <pre id="code"></pre>
         </code>
+        <script type="module">
+            import { compileToHighlighted } from './highlight.js';
+            const exampleCode = await (await fetch('./example.amy')).text();
+            document.getElementById('code').innerHTML = compileToHighlighted(exampleCode);
+        </script>
     </body>
 </html>

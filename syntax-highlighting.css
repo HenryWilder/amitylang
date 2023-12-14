@@ -12,7 +12,7 @@ body {
 }
 
 /* keyword */
-.k {
+.k, .op {
     color: #569cd6;
 }
 
