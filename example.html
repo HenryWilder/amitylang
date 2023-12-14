@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Amitylang Example</title>
+        <link rel="stylesheet" href="syntax-highlighting.css" />
+    </head>
+    <body>
+        <pre><span class="c">/**
+ * <span class="k">@keyword</span> <span class="o">import</span> Imports a collection of concepts or objects from a module.
+ *
+ * Single-module syntax:
+ * ```
+ * <span class="k">import</span> <span class="p">{</span> &lt;concept/object 1><span class="p">,</span> &lt;concept/object 2><span class="p">,</span> ...<span class="p">,</span> &lt;concept/object n> <span class="p">}</span> <span class="kc">from</span> '&lt;module>'
+ * ```
+ *
+ * Multi-module syntax:
+ * ```
+ * <span class="k">import</span> <span class="p">{</span>
+ *   <span class="p">{</span> &lt;concept/object 1&gt;<span class="p">,</span> &lt;concept/object 2&gt;<span class="p">,</span> ...<span class="p">,</span> &lt;concept/object n&gt; <span class="p">}</span> <span class="kc">from</span> '&lt;module 1&gt;'
+ *   <span class="p">{</span> &lt;concept/object 1&gt;<span class="p">,</span> &lt;concept/object 2&gt;<span class="p">,</span> ...<span class="p">,</span> &lt;concept/object n&gt; <span class="p">}</span> <span class="kc">from</span> '&lt;module 2&gt;'
+ *   ...
+ *   <span class="p">{</span> &lt;concept/object 1&gt;<span class="p">,</span> &lt;concept/object 2&gt;<span class="p">,</span> ...<span class="p">,</span> &lt;concept/object n&gt; <span class="p">}</span> <span class="kc">from</span> '&lt;module n&gt;'
+ * <span class="p">}</span>
+ * ```
+ */
+
+/**
+ * <span class="k">@keyword</span> <span class="o">define</span> Defines an alias or multiple aliases for a noun (type), verb (function), adjective (preset collection of values that can be overlapped onto an object), or shorthand (shorthand = macro).
+ *
+ * Abstract (concept) syntax:
+ * ```
+ * <span class="kc">define</span> <span class="p">[</span> &lt;alias 1&gt;<span class="p">,</span> &lt;alias 2&gt;<span class="p">,</span> ...<span class="p">,</span> &lt;alias n&gt; <span class="p">]</span> <span class="kc">as</span> &lt;<span class="k">noun</span>|<span class="k">verb</span>|<span class="k">adjective</span>|<span class="k">shorthand</span>&gt; <span class="kc">for</span> <span class="p">{</span>
+ *     &lt;definition&gt;
+ * <span class="p">}</span>
+ * ```
+ *
+ * Concrete (object) syntax:
+ * ```
+ * <span class="kc">define</span> <span class="p">[</span> &lt;alias 1&gt;<span class="p">,</span> &lt;alias 2&gt;<span class="p">,</span> ...<span class="p">,</span> &lt;alias n&gt; <span class="p">]</span> <span class="kc">as</span> &lt;typename&gt;
+ * ```
+ * (Concrete syntax can be assigned value using the "with" keyword)
+ */
+
+/**
+ * <span class="k">@keyword</span> <span class="o">with</span> Adds metadata to a definition.
+ *
+ * Single property syntax (optional):
+ * ```
+ * &lt;definition&gt; <span class="kc">with</span> &lt;property&gt;<span class="p">:</span> &lt;value&gt;
+ * ```
+ *
+ * Multiple property syntax (required if using more than one property; but can also be used for a single property):
+ * ```
+ * &lt;definition&gt; <span class="kc">with</span> <span class="p">{</span> &lt;property 1&gt;<span class="p">:</span> &lt;value&gt;<span class="p">,</span> &lt;property 2&gt;<span class="p">:</span> &lt;value&gt;<span class="p">,</span> ...<span class="p">,</span> &lt;property n&gt;<span class="p">:</span> &lt;value&gt; <span class="p">}</span>
+ * ```
+ */</span>
+
+<span class="kc">import</span> <span class="b1">{</span>
+    <span class="b2">{</span> <span class="o">happy</span>                    <span class="b2">}</span> <span class="kc">from</span> <span class="s">'human experience'</span>
+    <span class="b2">{</span> <span class="t">set</span>, <span class="f">⊆</span>, <span class="f">∈</span>                <span class="b2">}</span> <span class="kc">from</span> <span class="s">'set theory'</span>
+    <span class="b2">{</span> <span class="kc">await</span>, <span class="kc">then</span>              <span class="b2">}</span> <span class="kc">from</span> <span class="s">'async'</span>
+    <span class="b2">{</span> <span class="o">normal</span>                   <span class="b2">}</span> <span class="kc">from</span> <span class="s">'culture'</span>
+    <span class="b2">{</span> <span class="o">conversation</span>, <span class="o">pseudocode</span> <span class="b2">}</span> <span class="kc">from</span> <span class="s">'dictionary'</span>
+    <span class="b2">{</span> <span class="t">Person</span>                   <span class="b2">}</span> <span class="kc">from</span> <span class="s">'my other module'</span>
+<span class="b1">}</span>
+
+<span class="c">// `i` and `me` are two aliases of the same definition</span>
+<span class="c">// `Person` is a `noun`</span>
+<span class="kc">define</span> <span class="b1">[</span> <span class="o">i</span>, <span class="o">me</span> <span class="b1">]</span> <span class="kc">as</span> <span class="t">Person</span> <span class="kc">with</span> <span class="b1">{</span>
+    <span class="o">proper:</span> <span class="s">"Amity"</span>
+    <span class="o">reference:</span> <span class="s">"<span class="link">@amysmilebatto</span>"</span>
+    <span class="o">gender:</span> <span class="k">undefined</span>
+    <span class="o">quantity:</span> <span class="n">1</span>
+<span class="b1">}</span>
+
+<span class="kc">define</span> <span class="b1">(</span> <span class="o">subject</span> <span class="b1">)</span> <span class="b1">[</span> <span class="f">want</span>, <span class="f">wants</span> <span class="b1">]</span> <span class="b1">(</span> <span class="o">condition</span> <span class="b1">)</span> <span class="kc">as</span> <span class="k">verb</span> <span class="kc">for</span> <span class="b1">{</span>
+    <span class="kc">await</span> <span class="b2">(</span> <span class="o">condition</span> <span class="k">is</span> <span class="k">true</span> <span class="b2">)</span>
+    <span class="kc">then</span> <span class="o">subject</span> <span class="f">+=</span> <span class="o">happy</span>
+<span class="b1">}</span>
+
+<span class="kc">define</span> <span class="b1">(</span> <span class="o">a</span> <span class="b1">)</span> <span class="b1">[</span> <span class="f">contain</span>, <span class="f">contains</span> <span class="b1">]</span> <span class="b1">(</span> <span class="o">b</span> <span class="b1">)</span> <span class="kc">as</span> <span class="k">verb</span> <span class="kc">for</span> <span class="b1">{</span>
+    <span class="b2">(</span> <span class="o">b</span> <span class="f">∈</span> <span class="o">a</span> <span class="b2">)</span> <span class="k">or</span> <span class="b2">(</span> <span class="kc">if</span> <span class="b3">(</span> <span class="o">b</span> <span class="k">is</span> <span class="t">set</span> <span class="b3">)</span> <span class="b3">(</span> <span class="o">b</span> <span class="f">⊆</span> <span class="o">a</span> <span class="b3">)</span> <span class="b2">)</span>
+<span class="b1">}</span> <span class="kc">with</span> <span class="o">precedence:</span> <span class="n">2</span>
+
+<span class="c">// precedence of 2 is assignment/misc</span>
+
+<span class="kc">define</span> <span class="b1">[</span> <span class="o">this</span> <span class="b1">]</span> <span class="kc">as</span> <span class="k">verb</span> <span class="b1">{</span>
+    <span class="o">conversation</span> <span class="f">contains</span> <span class="o">pseudocode</span>
+<span class="b1">}</span>
+
+<span class="o">i</span> <span class="f">want</span> <span class="b1">(</span> <span class="o">this</span> <span class="f">∈</span> <span class="o">normal</span> <span class="b1">)</span></pre>
+    </body>
+</html>

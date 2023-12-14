@@ -1,0 +1,84 @@
+/**
+ * @keyword import - Imports a collection of concepts or objects from a module.
+ *
+ * Single-module syntax:
+ * ```
+ * import { <concept/object 1>, <concept/object 2>, ..., <concept/object n> } from '<module>'
+ * ```
+ *
+ * Multi-module syntax:
+ * ```
+ * import {
+ *   { <concept/object 1>, <concept/object 2>, ..., <concept/object n> } from '<module 1>'
+ *   { <concept/object 1>, <concept/object 2>, ..., <concept/object n> } from '<module 2>'
+ *   ...
+ *   { <concept/object 1>, <concept/object 2>, ..., <concept/object n> } from '<module n>'
+ * }
+ * ```
+ */
+
+/**
+ * @keyword define - Defines an alias or multiple aliases for a noun (type), verb (function), adjective (preset collection of values that can be overlapped onto an object), or shorthand (shorthand = macro).
+ *
+ * Abstract (concept) syntax:
+ * ```
+ * define [ <alias 1>, <alias 2>, ..., <alias n> ] as <noun|verb|adjective|shorthand> for {
+ *     <definition>
+ * }
+ * ```
+ *
+ * Concrete (object) syntax:
+ * ```
+ * define [ <alias 1>, <alias 2>, ..., <alias n> ] as <typename>
+ * ```
+ * (Concrete syntax can be assigned value using the "with" keyword)
+ */
+
+/**
+ * @keyword with - Adds metadata to a definition.
+ *
+ * Single property syntax (optional):
+ * ```
+ * <definition> with <property>: <value>
+ * ```
+ *
+ * Multiple property syntax (required if using more than one property; but can also be used for a single property):
+ * ```
+ * <definition> with { <property 1>: <value>, <property 2>: <value>, ..., <property n>: <value> }
+ * ```
+ */
+
+import {
+    { happy } from 'human experience'
+    { set, ⊆, ∈ } from 'set theory'
+    { await, then } from 'async'
+    { normal } from 'culture'
+    { conversation, pseudocode } from 'dictionary'
+    { Person } from 'my other module'
+}
+
+// `i` and `me` are two aliases of the same definition
+// `Person` is a `noun`
+define [ i, me ] as Person with {
+    proper: Amity
+    reference: @amysmilebatto
+    gender: undefined
+    quantity: 1
+}
+
+define ( subject ) [ want, wants ] ( condition ) as verb for {
+    await ( condition is true )
+    then subject += happy
+}
+
+define ( a ) [ contain, contains ] ( b ) as verb for {
+    ( b ∈ a ) or ( if ( b is set ) ( b ⊆ a ) )
+} with precedence: 2
+
+// precedence of 2 is assignment/misc
+
+define [ this ] as verb {
+    conversation contain pseudocode
+}
+
+i want ( this ∈ normal )

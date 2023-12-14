@@ -1,0 +1,78 @@
+body {
+    background-color: #1f1f1f;
+    color: #cccccc;
+    font-family: Consolas, 'Courier New', monospace;
+    font-weight: normal;
+    font-size: 14px;
+}
+
+/* punctuation */
+.p {
+    color: #cccccc;
+}
+
+/* keyword */
+.k {
+    color: #569cd6;
+}
+
+/* control keyword */
+.kc {
+    color: #c586c0;
+}
+
+/* object */
+.o {
+    color: #9cdcfe;
+}
+
+/* function */
+.f {
+    color: #dcdcaa;
+}
+
+/* string */
+.s {
+    color: #ce9178;
+}
+
+/* comment */
+.c {
+    color: #6a9955;
+}
+
+/* type */
+.t {
+    color: #4ec9b0;
+}
+
+/* number literal */
+.n {
+    color: #b5cea8;
+}
+
+/* link */
+.link {
+    text-decoration: underline;
+    text-underline-position: under;
+}
+
+/* Unexpected */
+.illegal {
+    color: rgba(255, 18, 18, 0.8);
+}
+
+/* level-1 bracket */
+.b1 {
+    color: #ffd700;
+}
+
+/* level-2 bracket */
+.b2 {
+    color: #da70d6;
+}
+
+/* level-3 bracket */
+.b3 {
+    color: #179fff;
+}
