@@ -50,11 +50,10 @@
 
 import {
     { happy } from 'human experience'
-    { set, subset_of, belongs_to } from 'set theory'
-    { await, then } from 'async'
+    { noun set, verb subset_of, verb belongs_to } from 'set theory'
     { normal } from 'culture'
     { conversation, pseudocode } from 'dictionary'
-    { Person } from 'my other module'
+    { noun Person } from 'my other module'
 }
 
 // `i` and `me` are two aliases of the same definition

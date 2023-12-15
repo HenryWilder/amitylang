@@ -1,10 +1,4 @@
-'use strict';
-
-/**
- * @param {string} codeStr
- * @returns {string}
- */
-const sanitize = (codeStr) => {
+const sanitize = (codeStr: string): string => {
     const rules = [
         { pat: /</g, sub: '&lt;' },
         { pat: />/g, sub: '&gt;' },
@@ -18,19 +12,17 @@ const sanitize = (codeStr) => {
     return sanitized;
 };
 
-/**
- * @typedef {{ start: number, size: number }} Range
- * @typedef {{ text: string, range: Range }} Token
- * @typedef {{ type: 'subexpression'|'statement or object'|'array', context: string }} Scope
- * @typedef { Token & { scope: Scope } } Symbol
- * @typedef {{ type: 'program', body: Symbol[] }} AST Abstract syntax tree
- */
+interface Range {
+    start: number;
+    size: number;
+}
 
-/**
- * @param {string} code
- * @returns {Token[]}
- */
-const tokenize = (code) => {
+interface Token {
+    text: string;
+    range: Range;
+}
+
+const tokenize = (code: string): Token[] => {
     const rx = /\s*(\/\*[\s\S]+?\*\/|\/\/.*|=>|[<=>~!+\-*\/%&\|^]=|\*\*|{|}|\(|\)|\[|\]|".*"|'.*'|[A-Za-z_][A-Za-z_0-9]*|\d+(?:\.\d+)?|\S)\s*/g;
     let result;
     const tokens = [];
@@ -47,15 +39,59 @@ const tokenize = (code) => {
     return tokens;
 };
 
-/**
- * @param {Token[]} tokens
- * @returns {AST}
- */
-const parse = (tokens) => {
-    const ast = { type: 'program', body: [] };
-    let mostRecentKeyword;
-    /** @type {Scope[]} */
-    const scopeStack = [];
+const semanticDefiningKeywords = ['import', 'define'] as const;
+const controlKeywords = [...semanticDefiningKeywords, 'from', 'as', 'for', 'if', 'await', 'then', 'with'] as const;
+type ControlKeyword = (typeof keywords)[number];
+const isControlKeyword = (x: string): x is ControlKeyword => (controlKeywords as unknown as string[]).includes(x);
+
+const regularKeywords = ['noun', 'verb', 'adjective', 'shorthand', 'or', 'is', 'undefined', 'null', 'true', 'false'] as const;
+type RegularKeyword = (typeof keywords)[number];
+const isRegularKeyword = (x: string): x is RegularKeyword => (regularKeywords as unknown as string[]).includes(x);
+
+const keywords = [...controlKeywords, ...regularKeywords] as const;
+type Keyword = ControlKeyword | RegularKeyword;
+const isKeyword = (x: string): x is Keyword => (keywords as unknown as string[]).includes(x);
+
+type ScopeType = 'subexpression' | 'statement or object' | 'array';
+
+interface Scope {
+    type: ScopeType;
+    context?: Keyword;
+}
+
+type SemanticType = 'object' | 'noun' | 'verb' | 'adjective' | 'shorthand';
+
+type TokenType =
+    | `${'opening' | 'closing'} ${'paren' | 'bracket' | 'brace'}`
+    | 'illegal'
+    | 'control'
+    | 'keyword'
+    | 'comment'
+    | 'semantic'
+    | SemanticType
+    | 'number'
+    | 'string'
+    | 'property'
+    | 'operator'
+    | 'unknown';
+
+interface Symbol extends Token {
+    type: TokenType;
+    scope?: Scope;
+    depth?: number;
+    definesSemantic?: boolean;
+}
+
+/** Abstract syntax tree */
+interface AST {
+    type: 'program';
+    body: Symbol[];
+}
+
+const parse = (tokens: Token[]): AST => {
+    const ast: AST = { type: 'program', body: [] };
+    let mostRecentKeyword: Keyword | undefined;
+    const scopeStack: Scope[] = [];
     const currentScope = () => scopeStack[scopeStack.length - 1];
     let depth = 0;
     for (let i = 0; i < tokens.length; ++i) {
@@ -64,22 +100,26 @@ const parse = (tokens) => {
 
         // Block comments
         if (text.startsWith('//') || (text.startsWith('/*') && text.endsWith('*/'))) {
-            ast.body.push({ type: 'comment', range });
+            ast.body.push({ type: 'comment', ...token });
         }
         // Brackets
         else if ('({[]})'.includes(text)) {
+            let type: string | undefined;
+
             if ('({['.includes(text)) {
+                type = 'opening ';
                 ++depth;
-                const scopeTypes = {
+                const scopeTypes: { [key: string]: ScopeType } = {
                     '(': 'subexpression',
                     '{': 'statement or object',
                     '[': 'array',
                 };
                 scopeStack.push({ type: scopeTypes[text], context: mostRecentKeyword });
+            } else {
+                type = 'closing ';
             }
 
-            let type;
-            const bracketTypes = {
+            const bracketTypes: { [key: string]: string } = {
                 '()': 'paren',
                 '[]': 'bracket',
                 '{}': 'brace',
@@ -87,12 +127,12 @@ const parse = (tokens) => {
 
             for (const key in bracketTypes) {
                 if (key.includes(text)) {
-                    type = bracketTypes[key];
+                    type += bracketTypes[key];
                     break;
                 }
             }
 
-            ast.body.push({ type, depth, text, range });
+            ast.body.push({ type: type as TokenType, depth, ...token });
 
             if (']})'.includes(text)) {
                 if (depth === 0) {
@@ -104,12 +144,12 @@ const parse = (tokens) => {
             }
         }
         // Control keywords
-        else if (text.match(/^(import|from|define|as|for|if|await|then|with)$/)) {
+        else if (isControlKeyword(text)) {
             mostRecentKeyword = text;
-            ast.body.push({ type: 'control', definesSemantic: text.match(/import|define/), text, range });
+            ast.body.push({ type: 'control', text, range });
         }
         // Keywords
-        else if (text.match(/^(noun|verb|adjective|shorthand|or|is|undefined|null|true|false)$/)) {
+        else if (isRegularKeyword(text)) {
             mostRecentKeyword = text;
             ast.body.push({ type: 'keyword', text, range });
         }
@@ -122,10 +162,10 @@ const parse = (tokens) => {
             ast.body.push({ type: 'number', text, range });
         }
         // Properties
-        else if (currentScope() === 'statement or object' && tokens[i + 1].text === ':') {
+        else if (currentScope()?.type === 'statement or object' && tokens[i + 1].text === ':') {
             ast.body.push({ type: 'property', text, range });
         }
-        // Symbols
+        // Semantics
         else if (text.match(/^[A-Za-z_][A-Za-z_0-9]*$/)) {
             ast.body.push({ type: 'semantic', scope: currentScope(), text, range });
         }
@@ -139,68 +179,95 @@ const parse = (tokens) => {
     return ast;
 };
 
-/**
- * @param {AST} ast
- * @returns {AST}
- */
-const analyze = (ast) => {
-    /**
-     * Stack
-     * @type {{[symbol: string]: { type: 'object'|'noun'|'verb'|'adjective'|'shorthand', id: number }}[]}
-     */
-    const semantics = [];
+interface SemanticData {
+    type: SemanticType;
+    id: number;
+}
+
+const analyze = (ast: AST): AST => {
+    const semantics: { [symbol: string]: SemanticData }[] = [{}];
+
+    let mostRecentKeyword: Keyword | undefined;
+
+    const createSemantic = (name: string, data: SemanticData) => {
+        semantics[semantics.length - 1][name] = data;
+    };
+
+    const findSemantic = (name: string): SemanticData | undefined => {
+        for (let i = semantics.length - 1; i >= 0; i--) {
+            const scope = semantics[i];
+            if (name in scope) {
+                return scope[name];
+            }
+        }
+    };
+
     let id = 0;
 
     for (const item of ast.body) {
         if (item.type === 'semantic') {
-            const isNewSemantic = item.scope === 'statement or object';
-
             // Being defined/declared
-            if (isNewSemantic) {
-                semantics.push({ type: 'object', id });
+            if (item.scope?.context !== undefined && item.scope?.type === 'statement or object') {
+                switch (mostRecentKeyword) {
+                    case 'define':
+                    case 'import':
+                        createSemantic(item.text, { type: 'object', id });
+                        break;
+
+                    case 'noun':
+                        createSemantic(item.text, { type: 'noun', id });
+                        break;
+
+                    case 'verb':
+                        createSemantic(item.text, { type: 'verb', id });
+                        break;
+                }
             }
 
+            const semantic = findSemantic(item.text);
+
             // Already defined
-            if (item.text in semantics) {
-                item.type = semantics[item.text].type;
+            if (semantic !== undefined) {
+                item.type = semantic.type as TokenType;
             }
             // Undefined
             else {
                 item.type = 'illegal';
             }
+        } else if (item.type === 'keyword' || item.type === 'control') {
+            mostRecentKeyword = item.text as Keyword;
         }
+        // todo: push/pop scope
     }
 
     return ast;
 };
 
 /**
- * @param {string} original
- * @param {AST} ast
- * @returns {string} Syntax-highlighted string
+ * @returns Syntax-highlighted string
  */
-const highlight = (original, ast) => {
-    const classNameMap = {
+const highlight = (original: string, ast: AST): string => {
+    const classNameMap: { [type: string]: string | ((item: Symbol) => string) } = {
         illegal: 'illegal',
         comment: 'c',
-        paren: (item) => `b${item.depth}`,
-        bracket: (item) => `b${item.depth}`,
-        brace: (item) => `b${item.depth}`,
+        paren: (item: Symbol) => `b${item.depth}`,
+        bracket: (item: Symbol) => `b${item.depth}`,
+        brace: (item: Symbol) => `b${item.depth}`,
         control: 'kc',
         keyword: 'k',
         string: 's',
         property: 'o',
         object: 'o',
         number: 'n',
-        function: 'f',
-        type: 't',
+        verb: 'f',
+        noun: 't',
         operator: 'op',
         punctuation: 'p',
     };
 
     let highlighted = '';
     for (const item of ast.body) {
-        const className = classNameMap[item.type] ?? '';
+        const className = classNameMap[item.type.replace(/(opening|closing) /, '')] ?? '';
         const start = item.range.start;
         const end = start + item.range.size;
         const substring = original.substring(start, end);
@@ -209,10 +276,6 @@ const highlight = (original, ast) => {
     return highlighted;
 };
 
-/**
- * @param {string} code
- * @returns {string}
- */
-export const compileToHighlighted = (code) => {
+export const compileToHighlighted = (code: string): string => {
     return sanitize(highlight(code, analyze(parse(tokenize(code)))));
 };
