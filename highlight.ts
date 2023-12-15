@@ -52,7 +52,7 @@ const keywords = [...controlKeywords, ...regularKeywords] as const;
 type Keyword = ControlKeyword | RegularKeyword;
 const isKeyword = (x: string): x is Keyword => (keywords as unknown as string[]).includes(x);
 
-type ScopeType = 'subexpression' | 'statement or object' | 'array';
+type ScopeType = 'subexpression' | 'statement or object' | 'array' | 'keyword' | 'global';
 
 interface Scope {
     type: ScopeType;
@@ -77,7 +77,7 @@ type TokenType =
 
 interface Symbol extends Token {
     type: TokenType;
-    scope?: Scope;
+    scope?: Scope[];
     depth?: number;
     definesSemantic?: boolean;
 }
@@ -92,7 +92,17 @@ const parse = (tokens: Token[]): AST => {
     const ast: AST = { type: 'program', body: [] };
     let mostRecentKeyword: Keyword | undefined;
     const scopeStack: Scope[] = [];
-    const currentScope = () => scopeStack[scopeStack.length - 1];
+    const currentScope = (): Scope | undefined => scopeStack[scopeStack.length - 1];
+    const scopeDebug: Scope[][] = [];
+    const pushScope = (type: ScopeType, context?: Keyword) => {
+        console.log(`{ type: '${type}', context: '${context}' }`);
+        scopeStack.push({ type: type, context: context });
+        console.debug([...scopeStack]);
+        scopeDebug.push([...scopeStack]);
+    };
+    const popScope = () => {
+        scopeStack.pop();
+    };
     let depth = 0;
     for (let i = 0; i < tokens.length; ++i) {
         let token = tokens[i];
@@ -114,7 +124,7 @@ const parse = (tokens: Token[]): AST => {
                     '{': 'statement or object',
                     '[': 'array',
                 };
-                scopeStack.push({ type: scopeTypes[text], context: mostRecentKeyword });
+                pushScope(scopeTypes[text], mostRecentKeyword);
             } else {
                 type = 'closing ';
             }
@@ -139,18 +149,27 @@ const parse = (tokens: Token[]): AST => {
                     ast.body[ast.body.length - 1].type = 'illegal';
                 } else {
                     --depth;
-                    scopeStack.pop();
+                    popScope();
                 }
             }
         }
         // Control keywords
         else if (isControlKeyword(text)) {
             mostRecentKeyword = text;
+            if (currentScope()?.type === 'keyword') {
+                popScope();
+            }
+            if (text === 'define' || text === 'import') {
+                pushScope('keyword', text);
+            }
             ast.body.push({ type: 'control', text, range });
         }
         // Keywords
         else if (isRegularKeyword(text)) {
             mostRecentKeyword = text;
+            if (currentScope()?.type === 'keyword') {
+                popScope();
+            }
             ast.body.push({ type: 'keyword', text, range });
         }
         // String literals
@@ -167,15 +186,16 @@ const parse = (tokens: Token[]): AST => {
         }
         // Semantics
         else if (text.match(/^[A-Za-z_][A-Za-z_0-9]*$/)) {
-            ast.body.push({ type: 'semantic', scope: currentScope(), text, range });
+            ast.body.push({ type: 'semantic', scope: scopeStack, text, range });
         }
         // All others
         else {
             ast.body.push({ type: 'unknown', text, range });
         }
+        console.debug(ast.body[ast.body.length - 1]);
     }
 
-    // console.debug(ast);
+    console.debug(scopeDebug.map((record) => record.map((scope) => `${scope.context} (${scope.type})`).join(' > ')).join('\n'));
     return ast;
 };
 
@@ -206,8 +226,12 @@ const analyze = (ast: AST): AST => {
 
     for (const item of ast.body) {
         if (item.type === 'semantic') {
+            if (item.scope === undefined) throw new Error('All semantics must have scope');
+            const scope: Scope[] = item.scope;
+            const topScope: Scope = scope[scope.length - 1] ?? { type: 'global' };
+
             // Being defined/declared
-            if (item.scope?.context !== undefined && item.scope?.type === 'statement or object') {
+            if (scope.some((x) => ['define', 'import'].includes(x.context ?? ''))) {
                 switch (mostRecentKeyword) {
                     case 'define':
                     case 'import':
@@ -221,10 +245,18 @@ const analyze = (ast: AST): AST => {
                     case 'verb':
                         createSemantic(item.text, { type: 'verb', id });
                         break;
+
+                    case 'adjective':
+                        createSemantic(item.text, { type: 'adjective', id });
+                        break;
                 }
+                console.debug(semantics);
+            } else if (topScope.type === 'subexpression' && topScope.context === 'import') {
+                createSemantic(item.text, { type: 'object', id });
             }
 
             const semantic = findSemantic(item.text);
+            console.debug(semantic);
 
             // Already defined
             if (semantic !== undefined) {
@@ -247,20 +279,22 @@ const analyze = (ast: AST): AST => {
  * @returns Syntax-highlighted string
  */
 const highlight = (original: string, ast: AST): string => {
+    const bracket = (item: Symbol) => `b${item.depth}`;
     const classNameMap: { [type: string]: string | ((item: Symbol) => string) } = {
         illegal: 'illegal',
         comment: 'c',
-        paren: (item: Symbol) => `b${item.depth}`,
-        bracket: (item: Symbol) => `b${item.depth}`,
-        brace: (item: Symbol) => `b${item.depth}`,
+        paren: bracket,
+        bracket: bracket,
+        brace: bracket,
         control: 'kc',
         keyword: 'k',
-        string: 's',
+        string: 'str',
+        adjective: 'adj',
         property: 'o',
         object: 'o',
-        number: 'n',
-        verb: 'f',
-        noun: 't',
+        number: 'num',
+        verb: 'v',
+        noun: 'n',
         operator: 'op',
         punctuation: 'p',
     };

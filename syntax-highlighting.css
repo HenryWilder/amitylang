@@ -26,13 +26,18 @@ body {
     color: #9cdcfe;
 }
 
-/* function */
-.f {
+/* adjective */
+.adj {
+    color: #4fc1ff;
+}
+
+/* verb */
+.v {
     color: #dcdcaa;
 }
 
 /* string */
-.s {
+.str {
     color: #ce9178;
 }
 
@@ -41,13 +46,13 @@ body {
     color: #6a9955;
 }
 
-/* type */
-.t {
+/* noun */
+.n {
     color: #4ec9b0;
 }
 
 /* number literal */
-.n {
+.num {
     color: #b5cea8;
 }
 

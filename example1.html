@@ -8,13 +8,33 @@
         <script type="module" src="highlight.js"></script>
     </head>
     <body>
+        <input type="text" id="filename-input" value="example" />
+        <button id="load-button">load</button><br /><br />
+        <textarea id="code-input"></textarea><br />
+        <button id="apply-button">apply</button><br />
         <code>
             <pre id="code"></pre>
         </code>
         <script type="module">
             import { compileToHighlighted } from './highlight.js';
-            const exampleCode = await (await fetch('./example.amy')).text();
-            document.getElementById('code').innerHTML = compileToHighlighted(exampleCode);
+
+            const filenameInput = document.getElementById('filename-input');
+            const loadButton = document.getElementById('load-button');
+            const codeInput = document.getElementById('code-input');
+            const applyButton = document.getElementById('apply-button');
+
+            const applyHighlight = (code) => {
+                document.getElementById('code').innerHTML = compileToHighlighted(code);
+            };
+
+            const loadAndHighlight = async () => {
+                const codeFile = await (await fetch(`./${filenameInput.value}.amy`)).text();
+                applyHighlight(codeFile);
+            };
+
+            loadButton.addEventListener('click', loadAndHighlight);
+            applyButton.addEventListener('click', () => applyHighlight(codeInput.value));
+            loadAndHighlight();
         </script>
     </body>
 </html>

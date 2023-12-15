@@ -58,25 +58,25 @@ import {
 
 // `i` and `me` are two aliases of the same definition
 // `Person` is a `noun`
-define [ i, me ] as Person with {
+define { i, me } as Person with {
     proper: 'Amity'
     reference: '@amysmilebatto'
     gender: undefined
     quantity: 1
 }
 
-define ( subject ) [ want, wants ] ( condition ) as verb for {
+define ( subject ) { want, wants } ( condition ) as verb for {
     await ( condition is true )
     then subject += happy
 }
 
-define ( a ) contain ( b ) as verb for {
+define ( a ) { contain } ( b ) as verb for {
     ( b belongs_to a ) or ( if ( b is set ) ( b subset_of a ) )
 } with precedence: 2
 
 // precedence of 2 is assignment/misc
 
-define this as Idea {
+define { this } as Idea {
     conversation contains pseudocode
 }
 

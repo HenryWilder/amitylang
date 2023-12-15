@@ -1,0 +1,3 @@
+import { adjective red, noun apple } from 'external module'
+
+red apple
